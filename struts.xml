@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+"-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+"http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>	 
+    <constant name="struts.enable.DynamicMethodInvocation" value="false" />
+    <constant name="struts.devMode" value="false" />
+    
+   	<package name="struts-securityaddon" abstract="true" extends="struts-default,hibernate-default" >
+        <interceptors>            			           
+			<interceptor-stack name="defaultSecurityStack">
+				<interceptor-ref name="defaultStack" />										
+			</interceptor-stack>
+		</interceptors>
+
+        <default-interceptor-ref name="defaultSecurityStack" />
+
+		<global-results>		
+			<!-- 				                        
+			<result name="custom_error" type="chain">CustomError</result>
+            <result name="error">CustomError</result>
+             -->
+            <result name="custom_error">/CustomError.jsp</result>
+		</global-results>
+		<!-- Provides custom error handling for any issues that aren't explicitly caught        
+		<global-exception-mappings>
+			<exception-mapping exception="java.lang.Exception" result="custom_error" />
+		</global-exception-mappings>
+
+        <action name="CustomError">
+        	<result>/CustomError.jsp</result>
+        </action>
+        
+        <action name="*">
+            <result>/CustomError.jsp</result>
+        </action>
+         -->
+    </package> 
+
+    <!-- Struts2SecurityAddon: extend struts-securityaddon template -->
+    <package name="default" namespace="/" extends="struts-securityaddon">
+        <default-action-ref name="index" />
+        <action name="index">
+            <result type="redirectAction">
+                <param name="actionName">HelloWorld</param>
+                <param name="namespace">/example</param>
+            </result>
+        </action>
+    </package>
+    
+    <package name="struts_medico" namespace="/medico" extends="login">	    	    
+		<action name="MedicoOnly">
+            <result>/contenido/medico/welcome.jsp</result>
+        </action>           				
+	</package>
+	
+	<package name="struts_paciente" namespace="/paciente" extends="login">	    	    
+		<action name="PacienteOnly">
+            <result>/contenido/paciente/welcome.jsp</result>
+        </action>           				
+	</package>
+    
+    <!-- Add packages here -->    
+    <package name="login" namespace="/" extends="struts-securityaddon"> 
+                                   
+        <interceptors>            
+			<interceptor name="authenticationInterceptor" class="mx.com.portalmedico.interceptor.AuthenticationInterceptor" />
+			<interceptor name="rolesInterceptor" class="mx.com.portalmedico.interceptor.RolesInterceptor" />
+
+			<interceptor-stack name="defaultSecurityStackWithAuthentication">
+				<interceptor-ref name="defaultSecurityStack" />
+				<interceptor-ref name="authenticationInterceptor">
+					<param name="excludeActions">login,
+												loginAction,
+												logOut,
+												CustomError,
+												busquedaMedicoAction,
+												loginCita,
+												saving,
+												events,
+												busquedaMedico,
+												prepararSolicitudCita,
+												solicitarCita,
+												solicitarCitaAction,
+												inicioSolicitarCitaAction,
+												solicitarCita1Action,
+												validarCelularAction,
+												validarCelular2Action,
+												informacionPacienteAction,
+												informacionPaciente2Action,
+												informacionOtraPersonaAction
+					</param>
+				</interceptor-ref>
+				<interceptor-ref name="rolesInterceptor">
+					<param name="roleActions">*: login,
+												loginAction,
+												logOut,
+												CustomError,
+												busquedaMedicoAction,
+												loginCita,
+												saving,
+												events,
+												busquedaMedico,
+												prepararSolicitudCita,
+												solicitarCita,
+												solicitarCitaAction,
+												inicioSolicitarCitaAction,
+												solicitarCita1Action,
+												validarCelularAction,
+												validarCelular2Action,
+												informacionPacienteAction,
+												informacionPaciente2Action,
+												informacionOtraPersonaAction;	
+											medico: MedicoOnly;								
+											paciente: PacienteOnly
+					</param>
+				</interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+
+		<default-interceptor-ref name="defaultSecurityStackWithAuthentication" />
+		
+		<default-action-ref name="busquedaMedico" />
+	
+    	<global-results>
+			<result name="authentication_required">/seguridad/AutentificacionRequerida.jsp</result>
+			<result name="authorization_required">/seguridad/AutorizacionRequerida.jsp</result>
+		</global-results>
+		
+		<!-- 
+		 <global-exception-mappings>
+			<exception-mapping exception="java.lang.Exception" result="custom_error" />
+		</global-exception-mappings>
+		 -->		 		
+        <action name="login">
+            <result>/login.jsp</result>
+        </action>
+                				
+        <action name="loginAction" class="LoginAction" >
+            <result type="redirect" name="login">/login.action</result>
+            <result type="redirect" name="success_paciente">/paciente/PacienteOnly.action</result>
+            <result type="redirect" name="success_medico">/medico/MedicoOnly.action</result>
+            <result type="redirect" name="success_premedico">/medico/PremedicoOnly.action</result>
+        </action>
+        
+        <action name="loginCita" class="LoginCita" method="loginCita" >
+            <result type="redirect" name="login">/login.action</result>
+            <result type="redirect" name="success">/solicitarCita.action</result>
+        </action>
+        
+        <action name="logOut" class="mx.com.portalmedico.action.LoginAction" method="logOut" >
+            <result type="redirect" name="success">/login.action</result>            
+        </action>
+        
+        <action name="busquedaMedico">
+            <result>/busqueda.jsp</result>
+        </action>
+        
+        <action name="solicitarCita">
+            <result>/solicitarcita.jsp</result>
+        </action>
+        
+        <action name="busquedaMedicoAction" class="BusquedaMedicoAction" >
+            <result name="success">/resultadoBusqueda.jsp</result>            
+        </action>
+                
+        <action name="saving" class="mx.com.portalmedico.action.SavingAction" method="saving">
+			<result name="success">/article.jsp</result>
+		</action>
+		
+		<action name="events" class="mx.com.portalmedico.action.SavingAction" method="events">
+			<result name="success">/data.jsp</result>
+		</action>
+		
+		<action name="prepararSolicitudCita" class="PrepararSolicitudCita">
+			<result name="success">/logincita.jsp</result>
+		</action>
+		
+		
+		<action name="solicitarCitaAction" class="SolicitarCita" method="solicitarCita">
+			<result name="success">/successcita.jsp</result>
+		</action>
+        
+        
+        <action name="inicioSolicitarCitaAction">
+            <result>/solicitarcita1.jsp</result>
+        </action>
+        
+        <action name="solicitarCita1Action" class="SolicitarCita1" method="solicitarCita">
+			<result name="success">/solicitarcita2.jsp</result>
+		</action>
+		
+        <action name="validarCelularAction" class="ValidarCelular" method="validarCelular">
+			<result name="success">/celularValidado.jsp</result>
+		</action>
+		
+        <action name="validarCelular2Action" class="ValidarCelular" method="validarCodigo">
+			<result name="success">/validacionCelularExitosa.jsp</result>
+			<result name="error">/validacionCelularIncorrecta.jsp</result>
+		</action>
+
+
+        <action name="informacionPacienteAction" class="InformacionPaciente" method="prepararInformacionPaciente">
+			<result name="success">/informacionpaciente.jsp</result>
+		</action>
+                  
+        <action name="informacionPaciente2Action" class="InformacionPaciente" method="obtenerInformacionPaciente">
+			<result name="success">/solicitudenviada.jsp</result>
+		</action>
+        
+        <action name="informacionOtraPersonaAction" class="InformacionOtraPersona" method="obtenerInformacionOtraPersona">
+			<result name="success">/busqueda.jsp</result>
+		</action>
+         
+    </package>
+    
+   
+    
+    
+</struts>
